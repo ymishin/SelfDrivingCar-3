@@ -25,16 +25,23 @@ def load_vgg(sess, vgg_path):
     :param vgg_path: Path to vgg folder, containing "variables/" and "saved_model.pb"
     :return: Tuple of Tensors from VGG model (image_input, keep_prob, layer3_out, layer4_out, layer7_out)
     """
-    # TODO: Implement function
-    #   Use tf.saved_model.loader.load to load the model and weights
+    # Use tf.saved_model.loader.load to load the model and weights
     vgg_tag = 'vgg16'
     vgg_input_tensor_name = 'image_input:0'
     vgg_keep_prob_tensor_name = 'keep_prob:0'
     vgg_layer3_out_tensor_name = 'layer3_out:0'
     vgg_layer4_out_tensor_name = 'layer4_out:0'
     vgg_layer7_out_tensor_name = 'layer7_out:0'
+
+    tf.saved_model.loader.load(sess, [vgg_tag], vgg_path)
+    graph = tf.get_default_graph()
+    inp = graph.get_tensor_by_name(vgg_input_tensor_name)
+    keep = graph.get_tensor_by_name(vgg_keep_prob_tensor_name)
+    layer3 = graph.get_tensor_by_name(vgg_layer3_out_tensor_name)
+    layer4 = graph.get_tensor_by_name(vgg_layer4_out_tensor_name)
+    layer7 = graph.get_tensor_by_name(vgg_layer7_out_tensor_name)
     
-    return None, None, None, None, None
+    return inp, keep, layer3, layer4, layer7
 tests.test_load_vgg(load_vgg, tf)
 
 
@@ -47,7 +54,37 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     :param num_classes: Number of classes to classify
     :return: The Tensor for the last layer of output
     """
-    # TODO: Implement function
+    reg_eps = 1e-3
+    init_sd = 1e-2
+    
+    enc_l7 = tf.layers.conv2d(vgg_layer7_out, num_classes, kernel_size=1, strides=1, padding='same',
+            kernel_initializer=tf.random_normal_initializer(init_sd),
+            kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_eps))
+
+    dec_l1 = tf.layers.conv2d_transpose(enc_l7, num_classes, kernel_size=4, strides=2, padding='same',
+            kernel_initializer=tf.random_normal_initializer(init_sd),
+            kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_eps))
+    
+    enc_l4 = tf.layers.conv2d(vgg_layer4_out, num_classes, kernel_size=1, strides=1, padding='same',
+            kernel_initializer=tf.random_normal_initializer(init_sd),
+            kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_eps))
+    
+    dec_l1 = tf.add(dec_l1, enc_l4)
+    
+    dec_l2 = tf.layers.conv2d_transpose(dec_l1, num_classes, kernel_size=4, strides=2, padding='same',
+            kernel_initializer=tf.random_normal_initializer(init_sd),
+            kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_eps))
+    
+    enc_l3 = tf.layers.conv2d(vgg_layer3_out, num_classes, kernel_size=1, strides=1, padding='same',
+            kernel_initializer=tf.random_normal_initializer(init_sd),
+            kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_eps))
+    
+    dec_l2 = tf.add(dec_l2, enc_l3)
+    
+    dec_l3 = tf.layers.conv2d_transpose(dec_l2, num_classes, kernel_size=16, strides=8, padding='same',
+            kernel_initializer=tf.random_normal_initializer(init_sd),
+            kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_eps))
+
     return None
 tests.test_layers(layers)
 
@@ -92,6 +129,8 @@ def run():
     data_dir = './data'
     runs_dir = './runs'
     tests.test_for_kitti_dataset(data_dir)
+
+    epochs = 6
 
     # Download pretrained vgg model
     helper.maybe_download_pretrained_vgg(data_dir)
