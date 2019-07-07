@@ -132,6 +132,8 @@ def train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_l
 
     kprob = 0.5
     lrate = 1e-4
+        
+    sess.run(tf.global_variables_initializer())
 
     for epoch in range(epochs):
         
@@ -165,8 +167,6 @@ def run():
 
     with tf.Session() as sess:
         
-        sess.run(tf.global_variables_initializer())
-
         # Path to vgg model
         vgg_path = os.path.join(data_dir, 'vgg')
         
