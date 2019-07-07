@@ -184,7 +184,7 @@ def run():
         logits, train_op, cross_entropy_loss = optimize(layer_output, correct_label, learning_rate, num_classes)
 
         # Train NN
-        epochs = 5
+        epochs = 10
         batch_size = 10
         print('Train NN ...')
         train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, input_image,
