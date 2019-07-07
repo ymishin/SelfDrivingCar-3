@@ -164,8 +164,12 @@ def run():
     #  https://www.cityscapes-dataset.com/ 
 
     with tf.Session() as sess:
+        
+        sess.run(tf.global_variables_initializer())
+
         # Path to vgg model
         vgg_path = os.path.join(data_dir, 'vgg')
+        
         # Create function to get batches
         get_batches_fn = helper.gen_batch_function(os.path.join(data_dir, 'data_road/training'), image_shape)
 
@@ -182,7 +186,7 @@ def run():
         # Train NN
         epochs = 5
         batch_size = 10
-        sess.run(tf.global_variables_initializer())
+        print('Train NN ...')
         train_nn(sess, epochs, batch_size, get_batches_fn, train_op, cross_entropy_loss, input_image,
                 correct_label, keep_prob, learning_rate)
 
