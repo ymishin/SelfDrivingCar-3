@@ -42,6 +42,7 @@ def load_vgg(sess, vgg_path):
     layer7 = graph.get_tensor_by_name(vgg_layer7_out_tensor_name)
     
     return inp, keep, layer3, layer4, layer7
+
 tests.test_load_vgg(load_vgg, tf)
 
 
@@ -85,7 +86,8 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
             kernel_initializer=tf.random_normal_initializer(init_sd),
             kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_eps))
 
-    return None
+    return dec_l3
+
 tests.test_layers(layers)
 
 
@@ -98,8 +100,19 @@ def optimize(nn_last_layer, correct_label, learning_rate, num_classes):
     :param num_classes: Number of classes to classify
     :return: Tuple of (logits, train_op, cross_entropy_loss)
     """
-    # TODO: Implement function
-    return None, None, None
+
+    logits = tf.reshape(nn_last_layer, (-1, num_classes))
+
+    labels = tf.reshape(correct_label, (-1, num_classes))
+
+    cross_entropy_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, labels)) 
+    
+    optimizer = tf.train.AdamOptimizer(learning_rate)
+
+    train_op = optimizer.minimize(cross_entropy_loss)
+
+    return logits, train_op, cross_entropy_loss
+
 tests.test_optimize(optimize)
 
 
