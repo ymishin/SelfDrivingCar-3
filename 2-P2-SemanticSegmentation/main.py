@@ -57,31 +57,31 @@ def layers(vgg_layer3_out, vgg_layer4_out, vgg_layer7_out, num_classes):
     init_sd = 1e-2
     
     enc_l7 = tf.layers.conv2d(vgg_layer7_out, num_classes, kernel_size=1, strides=1, padding='same',
-            kernel_initializer=tf.random_normal_initializer(init_sd),
+            kernel_initializer=tf.random_normal_initializer(stddev=init_sd),
             kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_eps))
 
     dec_l1 = tf.layers.conv2d_transpose(enc_l7, num_classes, kernel_size=4, strides=2, padding='same',
-            kernel_initializer=tf.random_normal_initializer(init_sd),
+            kernel_initializer=tf.random_normal_initializer(stddev=init_sd),
             kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_eps))
     
     enc_l4 = tf.layers.conv2d(vgg_layer4_out, num_classes, kernel_size=1, strides=1, padding='same',
-            kernel_initializer=tf.random_normal_initializer(init_sd),
+            kernel_initializer=tf.random_normal_initializer(stddev=init_sd),
             kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_eps))
     
     dec_l1 = tf.add(dec_l1, enc_l4)
     
     dec_l2 = tf.layers.conv2d_transpose(dec_l1, num_classes, kernel_size=4, strides=2, padding='same',
-            kernel_initializer=tf.random_normal_initializer(init_sd),
+            kernel_initializer=tf.random_normal_initializer(stddev=init_sd),
             kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_eps))
     
     enc_l3 = tf.layers.conv2d(vgg_layer3_out, num_classes, kernel_size=1, strides=1, padding='same',
-            kernel_initializer=tf.random_normal_initializer(init_sd),
+            kernel_initializer=tf.random_normal_initializer(stddev=init_sd),
             kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_eps))
     
     dec_l2 = tf.add(dec_l2, enc_l3)
     
     dec_l3 = tf.layers.conv2d_transpose(dec_l2, num_classes, kernel_size=16, strides=8, padding='same',
-            kernel_initializer=tf.random_normal_initializer(init_sd),
+            kernel_initializer=tf.random_normal_initializer(stddev=init_sd),
             kernel_regularizer=tf.contrib.layers.l2_regularizer(reg_eps))
 
     return dec_l3
