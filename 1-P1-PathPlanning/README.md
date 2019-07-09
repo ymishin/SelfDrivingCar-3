@@ -5,7 +5,12 @@
 
 ---
 
-###
+The path planning algorithm consists of two steps - behavior planning and trajectory generation.
 
-Spline library
-https://kluge.in-chemnitz.de/opensource/spline/
+##### Behavior planning
+
+...
+
+##### Trajectory generation
+
+Spline library (https://kluge.in-chemnitz.de/opensource/spline/)

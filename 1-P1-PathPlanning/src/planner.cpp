@@ -149,13 +149,16 @@ Planner::Planner(
   this->map_w_dx = map_waypoints_dx;
   this->map_w_dy = map_waypoints_dy;
 
+  target_lane = 1;
   current_lane = 1;
   current_velocity = 0.0;
   max_velocity = 22.0; // [m/s]
   accel_decel = 0.1;
-  min_traffic_gap = 30.0;
+  min_traffic_gap_front = 20;
+  min_traffic_gap_change_front = 30;
+  min_traffic_gap_change_back = 10;
   max_path_size = 50;
-  spline_step = 30.0;
+  spline_step = 25.0;
   planning_horizon = 30.0;
 }
 
@@ -178,11 +181,12 @@ void Planner::CalculateTrajectory(
   size_t prev_n = previous_path_x.size();
   double ref_s = (prev_n > 0) ? end_path_s : car_s;
 
-  // *** Prediction  ***
-  
-  double current_d = 2 + 4 * current_lane;
-  
-  bool too_close = false;
+  // *** Behavior planning ***
+
+  bool car_ahead = false;
+  bool cars_left = false;
+  bool cars_right = false;
+  double target_velocity = max_velocity;
 
   for (const auto &other_car : sensor_fusion) {
 
@@ -193,20 +197,68 @@ void Planner::CalculateTrajectory(
     double s = other_car[5];
     double d = other_car[6];
 
-    if (d > (current_d - 2) && d < (current_d + 2)) {
-      double check_car_vel = sqrt(vx * vx + vy * vy);
-      double check_car_s = s + prev_n * 0.02 * check_car_vel;
-      if ((check_car_s > ref_s) && (check_car_s - ref_s < min_traffic_gap)) {
-        too_close = true;
+    // Find out which lane car occupies
+    int lane;
+    if (d < 4) {
+      lane = 0;
+    }
+    else if (d < 8) {
+      lane = 1;
+    }
+    else {
+      lane = 2;
+    }
+
+    double check_car_vel = sqrt(vx * vx + vy * vy);
+    double check_car_s = s + prev_n * 0.02 * check_car_vel;
+
+    if (lane == current_lane) {
+      // Car ahead of us
+      if ((check_car_s > ref_s) && (check_car_s - ref_s < min_traffic_gap_front)) {
+        car_ahead = true;
+        target_velocity = check_car_vel;
+      }
+    }
+    else if (current_lane - lane == 1)
+    {
+      // Car to the left
+      if (
+        ((check_car_s > ref_s) && (check_car_s - ref_s < min_traffic_gap_change_front)) ||
+        ((check_car_s < ref_s) && (ref_s - check_car_s < min_traffic_gap_change_back))) {
+        cars_left = true;
+      }
+    }
+    else if (lane - current_lane == 1) {
+      // Car to the right
+      if (
+        ((check_car_s > ref_s) && (check_car_s - ref_s < min_traffic_gap_change_front)) ||
+        ((check_car_s < ref_s) && (ref_s - check_car_s < min_traffic_gap_change_back))) {
+        cars_right = true;
       }
     }
   }
 
-  // Adjust velocity
-  if (too_close) {
-    current_velocity -= accel_decel;
-  } else if (current_velocity < max_velocity) {
-    current_velocity += accel_decel;
+  if (car_ahead) {
+    if (current_lane > 0 && !cars_left)
+    {
+      current_lane--;
+      target_velocity = max_velocity;
+    }
+    else if (current_lane < 2 && !cars_right)
+    {
+      current_lane++;
+      target_velocity = max_velocity;
+    }
+  }
+  else
+  {
+    if (current_lane > target_lane && !cars_left) {
+      current_lane--;
+    }
+    else if (current_lane < target_lane && !cars_right)
+    {
+      current_lane++;
+    }
   }
 
   // *** Create points for trajectory generation (spline interpolation) ***
@@ -227,7 +279,8 @@ void Planner::CalculateTrajectory(
     ref_yaw = deg2rad(car_yaw);
     ref_x0 = ref_x - cos(ref_yaw);
     ref_y0 = ref_y - sin(ref_yaw);
-  } else {
+  }
+  else {
     // Use previous path as reference
     ref_x = previous_path_x[prev_n - 1];
     ref_y = previous_path_y[prev_n - 1];
@@ -274,7 +327,7 @@ void Planner::CalculateTrajectory(
   next_x_vals->assign(previous_path_x.begin(), previous_path_x.end());
   next_y_vals->assign(previous_path_y.begin(), previous_path_y.end());
 
-  // Calculate number of points to respect reference velocity
+  // Calculate target distance
   double target_x = planning_horizon;
   double target_y = spline(target_x);
   double target_dist = sqrt(target_x * target_x + target_y * target_y);
@@ -282,6 +335,14 @@ void Planner::CalculateTrajectory(
   // Perform spline interpolation and a create a trajectory
   double x_add_on = 0.0;  
   for (size_t i = 1; i < max_path_size - prev_n; ++i) {
+
+    // Adjust velocity
+    if (current_velocity < target_velocity) {
+      current_velocity += accel_decel;
+    } 
+    else if (current_velocity > target_velocity) {
+      current_velocity -= accel_decel;
+    }
 
     // Car coordinates
     double N = target_dist / (0.02 * current_velocity);

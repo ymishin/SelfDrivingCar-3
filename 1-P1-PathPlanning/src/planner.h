@@ -36,7 +36,8 @@ public:
 
 private:
 
-  int current_lane;
+  int target_lane;
+  int current_lane;  
   double current_velocity;
   double max_velocity;
   double accel_decel;
@@ -44,6 +45,9 @@ private:
   double spline_step;
   double planning_horizon;
   double min_traffic_gap;
+  double min_traffic_gap_front;
+  double min_traffic_gap_change_front;
+  double min_traffic_gap_change_back;
 
   vector<double> map_w_x;
   vector<double> map_w_y;
