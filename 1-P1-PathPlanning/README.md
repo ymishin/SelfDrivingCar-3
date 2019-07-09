@@ -7,7 +7,7 @@
 
 The path planning algorithm is implemented in **PlanBehaviorAndCalculateTrajectory** method of **Planner** class and consists of two steps - behavior planning and trajectory generation.
 
-##### Behavior Planning
+### Behavior Planning
 
 At the first step of behavior planning all cars from fusion data are analyzed and their positions forward in time are predicted. The goal of this analysis is to find out if our car is constrained by other cars to **(a)** continue drive forward and to **(b)** change lane. At the next step the behaviour of our car is planned. The logic is pretty straighforward and can be summarized as follows:
 
@@ -18,7 +18,7 @@ If our car follows a car ahead, the reference velocity of our car is set to the 
 
 The result of behaviour planning step is reference velocity and lane to drive for our car.
 
-##### Trajectory Generation
+### Trajectory Generation
 
 Trajectory generation is based on spline interpolation using external library (https://kluge.in-chemnitz.de/opensource/spline/).
 
