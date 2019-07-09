@@ -116,10 +116,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\src\main.cpp" />
+    <ClCompile Include="..\src\planner.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\helpers.h" />
     <ClInclude Include="..\src\json.hpp" />
+    <ClInclude Include="..\src\planner.h" />
+    <ClInclude Include="..\src\spline.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

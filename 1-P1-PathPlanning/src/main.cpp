@@ -7,6 +7,7 @@
 #include "Eigen-3.3/Eigen/QR"
 #include "helpers.h"
 #include "json.hpp"
+#include "planner.h"
 
 // for convenience
 using nlohmann::json;
@@ -50,9 +51,15 @@ int main() {
     map_waypoints_dy.push_back(d_y);
   }
 
-  h.onMessage([&map_waypoints_x,&map_waypoints_y,&map_waypoints_s,
-               &map_waypoints_dx,&map_waypoints_dy]
-              (uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
+  //planner
+  Planner planner(
+    map_waypoints_x,
+    map_waypoints_y,
+    map_waypoints_s,
+    map_waypoints_dx,
+    map_waypoints_dy);
+
+  h.onMessage([&planner](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length,
                uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
     // The 4 signifies a websocket message
@@ -97,7 +104,20 @@ int main() {
            * TODO: define a path made up of (x,y) points that the car will visit
            *   sequentially every .02 seconds
            */
-
+          planner.CalculateTrajectory(
+            car_x,
+            car_y,
+            car_s,
+            car_d,
+            car_yaw,
+            car_speed,
+            end_path_s,
+            end_path_d,
+            previous_path_x,
+            previous_path_y,
+            sensor_fusion,
+            &next_x_vals,
+            &next_y_vals);
 
           msgJson["next_x"] = next_x_vals;
           msgJson["next_y"] = next_y_vals;
