@@ -19,7 +19,7 @@ public:
     const vector<double> &map_waypoints_dx,
     const vector<double> &map_waypoints_dy);
   
-  void CalculateTrajectory(
+  void PlanBehaviorAndCalculateTrajectory(
     const double car_x,
     const double car_y,
     const double car_s,

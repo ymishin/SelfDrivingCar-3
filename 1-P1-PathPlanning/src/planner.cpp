@@ -162,7 +162,7 @@ Planner::Planner(
   planning_horizon = 30.0;
 }
 
-void Planner::CalculateTrajectory(
+void Planner::PlanBehaviorAndCalculateTrajectory(
   const double car_x,
   const double car_y,
   const double car_s,
@@ -187,7 +187,8 @@ void Planner::CalculateTrajectory(
   bool cars_left = false;
   bool cars_right = false;
   double target_velocity = max_velocity;
-
+  
+  // Check all other cars
   for (const auto &other_car : sensor_fusion) {
 
     double x = other_car[1];
@@ -209,9 +210,11 @@ void Planner::CalculateTrajectory(
       lane = 2;
     }
 
+    // Predict car position
     double check_car_vel = sqrt(vx * vx + vy * vy);
     double check_car_s = s + prev_n * 0.02 * check_car_vel;
 
+    // Find out if car constrains us
     if (lane == current_lane) {
       // Car ahead of us
       if ((check_car_s > ref_s) && (check_car_s - ref_s < min_traffic_gap_front)) {
@@ -238,7 +241,9 @@ void Planner::CalculateTrajectory(
     }
   }
 
+  // Plan our behavior
   if (car_ahead) {
+    // Car ahead of us - change lane if possible
     if (current_lane > 0 && !cars_left)
     {
       current_lane--;
@@ -252,6 +257,7 @@ void Planner::CalculateTrajectory(
   }
   else
   {
+    // Go back to target lane if possible
     if (current_lane > target_lane && !cars_left) {
       current_lane--;
     }
@@ -332,7 +338,7 @@ void Planner::CalculateTrajectory(
   double target_y = spline(target_x);
   double target_dist = sqrt(target_x * target_x + target_y * target_y);
 
-  // Perform spline interpolation and a create a trajectory
+  // Perform spline interpolation and create a trajectory
   double x_add_on = 0.0;  
   for (size_t i = 1; i < max_path_size - prev_n; ++i) {
 
