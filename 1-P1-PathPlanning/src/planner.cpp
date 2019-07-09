@@ -153,6 +153,7 @@ Planner::Planner(
   current_velocity = 0.0;
   max_velocity = 22.0; // [m/s]
   accel_decel = 0.1;
+  min_traffic_gap = 30.0;
   max_path_size = 50;
   spline_step = 30.0;
   planning_horizon = 30.0;
@@ -180,22 +181,26 @@ void Planner::CalculateTrajectory(
   // *** Prediction  ***
   
   double current_d = 2 + 4 * current_lane;
+  
   bool too_close = false;
 
-  ////for (const auto &other_car : sensor_fusion)
-  ////{        
-  ////  double x = other_car[1];
-  ////  double y = other_car[2];
-  ////  double vx = other_car[3];
-  ////  double vy = other_car[4];
-  ////  double s = other_car[5];
-  ////  double d = other_car[6];
+  for (const auto &other_car : sensor_fusion) {
 
-  ////  if (d < (current_d + 2) && d > (current_d - 2)) {
-  ////    double vel = sqrt(vx * vx + vy * vy);
-  ////    }
-  ////  }
-  ////}
+    double x = other_car[1];
+    double y = other_car[2];
+    double vx = other_car[3];
+    double vy = other_car[4];
+    double s = other_car[5];
+    double d = other_car[6];
+
+    if (d > (current_d - 2) && d < (current_d + 2)) {
+      double check_car_vel = sqrt(vx * vx + vy * vy);
+      double check_car_s = s + prev_n * 0.02 * check_car_vel;
+      if ((check_car_s > ref_s) && (check_car_s - ref_s < min_traffic_gap)) {
+        too_close = true;
+      }
+    }
+  }
 
   // Adjust velocity
   if (too_close) {

@@ -43,6 +43,7 @@ private:
   int max_path_size;
   double spline_step;
   double planning_horizon;
+  double min_traffic_gap;
 
   vector<double> map_w_x;
   vector<double> map_w_y;
