@@ -25,7 +25,7 @@ Trajectory generation is based on spline interpolation using external library (h
 At the first step, 5 reference points for spline interpolation are constructed, these are:
 
 * 2 points from previous path or, if previous path is almost empty, current position of the car and 1 point backward in time.
-* 3 points ahead with predetermined step. These are constructed first in Frenet coordinates taking into account desired lane determined during behaviour planning step. Then transformation to Cartesian coordinates are performed.
+* 3 points ahead with predetermined step. These are constructed first in Frenet coordinates taking into account desired lane determined during behaviour planning step. Then transformation to Cartesian coordinates is performed.
 
 After these points are constructed, they are transformed from global to car coordinates to facilitate further calculations.
 
