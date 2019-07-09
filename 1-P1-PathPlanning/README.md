@@ -9,9 +9,9 @@ The path planning algorithm is implemented in **PlanBehaviorAndCalculateTrajecto
 
 ### Behavior Planning
 
-At the first step of behavior planning all cars from fusion data are analyzed and their positions forward in time are predicted. The goal of this analysis is to find out if our car is constrained by other cars to **(a)** continue drive forward and to **(b)** change lane. At the next step the behaviour of our car is planned. The logic is pretty straighforward and can be summarized as follows:
+At the first step of behavior planning, all cars from fusion data are analyzed and their positions forward in time are predicted. The goal of this analysis is to find out if our car is constrained by other cars to **(a)** continue drive forward and to **(b)** change lane. At the next step, the behaviour of our car is planned. The logic is pretty straighforward and can be summarized as follows:
 
-* If there is a car ahead of our car -> try to change lane if possible. Change lane to the left is preffered.
+* If there is a car ahead of our car -> try to change lane if possible. Changing lane to the left is preffered.
 * If there is no car ahead -> try to change lane to the target lane (by default it is a middle lane).
 
 If our car follows a car ahead, the reference velocity of our car is set to the velocity of a car ahead. Otherwise the reference velocity is set to predefined maximum value.
